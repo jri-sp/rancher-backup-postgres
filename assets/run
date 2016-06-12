@@ -1,0 +1,4 @@
+#!/bin/bash
+
+python /app/init.py init
+exec /usr/sbin/cron -f
