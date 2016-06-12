@@ -9,8 +9,8 @@ RUN apt-get update && \
 RUN pip install rancher_metadata
 
 COPY assets/init.py /app/init.py
-COPY assets/run /app/init.py
-RUN chmod +x /app/init.py
+COPY assets/run /app/run
+RUN chmod +x /app/run
 
 
 
