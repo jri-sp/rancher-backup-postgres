@@ -4,7 +4,7 @@ MAINTAINER Sebastien LANGOUREAUX <linuxworkgroup@hotmail.com>
 
 # Add python and cron to manage backup
 RUN apt-get update && \
-    apt-get install -y cron python vim python-pip duplicity ncftp python-paramiko python-gobject-2 python-boto
+    apt-get install -y curl python vim python-pip duplicity ncftp python-paramiko python-gobject-2 python-boto
 
 RUN pip install rancher_metadata
 

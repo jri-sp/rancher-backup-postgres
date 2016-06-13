@@ -1,4 +1,3 @@
 #!/bin/bash
-
 python /app/init.py init
-exec /usr/sbin/cron -f
+exec go-cron "${CRON_SCHEDULE}" /bin/bash -c "python /app/init.py"
