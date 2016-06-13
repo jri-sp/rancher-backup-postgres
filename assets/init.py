@@ -92,6 +92,8 @@ class ServiceRun():
 
       with open('/etc/cron.d/backup', "w") as myFile:
           myFile.write("%s root /usr/bin/python /app/init.py \n\n" % (cron))
+          
+      os.system("chmod 0644 /etc/cron.d/backup")
 
 
 
