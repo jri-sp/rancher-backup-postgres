@@ -91,7 +91,7 @@ class ServiceRun():
           raise KeyError("You must set cron periodicity")
 
       with open('/etc/cron.d/backup', "w") as myFile:
-          myFile.write("%s /usr/bin/python /app/init.py \n" % (cron))
+          myFile.write("%s root /usr/bin/python /app/init.py \n\n" % (cron))
 
 
 
