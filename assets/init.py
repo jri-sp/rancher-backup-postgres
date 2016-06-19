@@ -13,7 +13,7 @@ BACKUP_DIR = '/backup/postgres'
 class ServiceRun():
 
 
-  def backup_duplicity_ftp(self, ftp_server, ftp_port, ftp_user, ftp_password, target_path, is_init=False):
+  def backup_duplicity_ftp(self, ftp_server, ftp_port, ftp_user, ftp_password, target_path, full_backup_frequency, nb_full_backup_keep, nb_increment_backup_chain_keep, volume_size, is_init=False):
       global BACKUP_DIR
       if ftp_server is None or ftp_server == "":
           raise KeyError("You must set the ftp server")
@@ -25,28 +25,34 @@ class ServiceRun():
           raise KeyError("You must set the ftp password")
       if target_path is None or target_path == "":
           raise KeyError("You must set the target path")
+      if full_backup_frequency is None or full_backup_frequency == "":
+          raise KeyError("You must set the full backup frequency")
+      if nb_full_backup_keep is None or nb_full_backup_keep == "":
+          raise KeyError("You must set how many full backup you should to keep")
+      if nb_increment_backup_chain_keep is None or nb_increment_backup_chain_keep == "":
+          raise KeyError("You must set how many incremental chain with full backup you should to keep")
+      if volume_size is None or volume_size == "":
+          raise KeyError("You must set the volume size")
 
       ftp = "ftp://%s@%s:%d%s" % (ftp_user, ftp_server, ftp_port, target_path)
-      cmd = "FTP_PASSWORD=%s duplicity " % (ftp_password)
+      cmd = "FTP_PASSWORD=%s duplicity" % (ftp_password)
 
       # First, we restore the last backup
       if is_init is True:
           print("Starting init the backup folder")
-          os.system(cmd + '--no-encryption ' + ftp + ' ' + BACKUP_DIR + '/')
+          os.system("%s --no-encryption %s %s" % (cmd, ftp, BACKUP_DIR))
 
 
       else:
           # We backup on FTP
           print("Starting backup")
-          os.system(cmd + '--no-encryption --allow-source-mismatch --full-if-older-than 7D ' + BACKUP_DIR + ' ' + ftp)
+          os.system("%s --volsize %s --no-encryption --allow-source-mismatch --full-if-older-than %s %s %s" % (cmd, volume_size, full_backup_frequency, BACKUP_DIR, ftp))
 
           # We clean old backup
           print("Starting cleanup")
-          os.system(cmd + 'remove-all-but-n-full 3 --force --allow-source-mismatch --no-encryption ' + ftp)
-          os.system(cmd + 'cleanup --force --no-encryption ' + ftp)
-
-
-
+          os.system("%s remove-all-but-n-full %s --force --allow-source-mismatch --no-encryption %s" % (cmd, nb_full_backup_keep, ftp))
+          os.system("%s remove-all-inc-of-but-n-full %s --force --allow-source-mismatch --no-encryption %s" % (cmd, nb_increment_backup_chain_keep, ftp))
+          os.system("%s cleanup --force --no-encryption %s" % (cmd, ftp))
 
 
   def backup_postgres(self):
@@ -86,23 +92,12 @@ class ServiceRun():
           os.system(cmd)
           print("We dump " + database['db'] + " (" + database['name'] + ") in " + path)
 
-  def set_cron(self, cron):
-      if cron is None or cron == "":
-          raise KeyError("You must set cron periodicity")
-
-      with open('/etc/cron.d/backup', "w") as myFile:
-          myFile.write("%s root /usr/bin/python /app/init.py \n\n" % (cron))
-          
-      os.system("chmod 0644 /etc/cron.d/backup")
 
 
 
 if __name__ == '__main__':
     service = ServiceRun()
 
-    if(len(sys.argv) > 1 and sys.argv[1] == "init"):
-        service.set_cron(os.getenv('CRON_SCHEDULE', '30 2 * * *'))
-    else:
-        service.backup_duplicity_ftp(os.getenv('FTP_SERVER'), os.getenv('FTP_PORT', 21), os.getenv('FTP_LOGIN'), os.getenv('FTP_PASSWORD'), os.getenv('FTP_TARGET_PATH', "/backup/postgres"), True)
-        service.backup_postgres()
-        service.backup_duplicity_ftp(os.getenv('FTP_SERVER'), os.getenv('FTP_PORT', 21), os.getenv('FTP_LOGIN'), os.getenv('FTP_PASSWORD'), os.getenv('FTP_TARGET_PATH', "/backup/postgres"))
+    service.backup_duplicity_ftp(os.getenv('FTP_SERVER'), os.getenv('FTP_PORT', 21), os.getenv('FTP_LOGIN'), os.getenv('FTP_PASSWORD'), os.getenv('FTP_TARGET_PATH', "/backup/postgres"),os.getenv('BK_FULL_FREQ', "7D"), os.getenv('BK_KEEP_FULL', "3"), os.getenv('BK_KEEP_FULL_CHAIN', "1"), os.getenv('VOLUME_SIZE', "25"), True)
+    service.backup_postgres()
+    service.backup_duplicity_ftp(os.getenv('FTP_SERVER'), os.getenv('FTP_PORT', 21), os.getenv('FTP_LOGIN'), os.getenv('FTP_PASSWORD'), os.getenv('FTP_TARGET_PATH', "/backup/postgres"),os.getenv('BK_FULL_FREQ', "7D"), os.getenv('BK_KEEP_FULL', "3"), os.getenv('BK_KEEP_FULL_CHAIN', "1"), os.getenv('VOLUME_SIZE', "25"))
