@@ -15,7 +15,7 @@ class ServiceRun():
 
   def backup_duplicity_ftp(self, backend, target_path, full_backup_frequency, nb_full_backup_keep, nb_increment_backup_chain_keep, volume_size, is_init=False):
       global BACKUP_DIR
-      if backend is None or ftp_backend == "":
+      if backend is None or backend == "":
           raise KeyError("You must set the target backend")
       if target_path is None or target_path == "":
           raise KeyError("You must set the target path")
