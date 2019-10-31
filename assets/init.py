@@ -70,9 +70,9 @@ class ServiceRun():
           service_name_env = service_name.upper().replace('-', '_')
           database = {}
           database['host'] = service_name
-          database['db'] = get_docker_secret(service_name_env + '_ENV_POSTGRES_DB', get_docker_secret(service_name_env + '_ENV_POSTGRES_USER'))
-          database['user'] = get_docker_secret(service_name_env + '_ENV_POSTGRES_USER', 'postgres')
-          database['password'] = get_docker_secret(service_name_env + '_ENV_POSTGRES_PASSWORD')
+          database['db'] = self.get_docker_secret(service_name_env + '_ENV_POSTGRES_DB', self.get_docker_secret(service_name_env + '_ENV_POSTGRES_USER'))
+          database['user'] = self.get_docker_secret(service_name_env + '_ENV_POSTGRES_USER', 'postgres')
+          database['password'] = self.get_docker_secret(service_name_env + '_ENV_POSTGRES_PASSWORD')
           database['name'] = service
 
           list_postgresql.append(database)
