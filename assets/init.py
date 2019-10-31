@@ -12,6 +12,15 @@ BACKUP_DIR = '/backup/postgres'
 
 class ServiceRun():
 
+  def get_docker_secret(self, var, default=None):
+      secretfile_var = var + '_FILE'
+      val = default
+      if os.getenv(var) is not None and os.getenv(var) != "":
+          val = os.getenv(var)
+      elif os.getenv(secretfile_var) is not None and os.getenv(secretfile_var) != "":
+          with open(os.getenv(secretfile_var), 'r') as secret_file:
+              val = secret_file.read()
+      return val
 
   def backup_duplicity_ftp(self, backend, target_path, full_backup_frequency, nb_full_backup_keep, nb_increment_backup_chain_keep, volume_size, is_init=False):
       global BACKUP_DIR
@@ -61,9 +70,9 @@ class ServiceRun():
           service_name_env = service_name.upper().replace('-', '_')
           database = {}
           database['host'] = service_name
-          database['db'] = os.getenv(service_name_env + '_ENV_POSTGRES_DB', os.getenv(service_name_env + '_ENV_POSTGRES_USER'))
-          database['user'] = os.getenv(service_name_env + '_ENV_POSTGRES_USER', 'postgres')
-          database['password'] = os.getenv(service_name_env + '_ENV_POSTGRES_PASSWORD')
+          database['db'] = get_docker_secret(service_name_env + '_ENV_POSTGRES_DB', get_docker_secret(service_name_env + '_ENV_POSTGRES_USER'))
+          database['user'] = get_docker_secret(service_name_env + '_ENV_POSTGRES_USER', 'postgres')
+          database['password'] = get_docker_secret(service_name_env + '_ENV_POSTGRES_PASSWORD')
           database['name'] = service
 
           list_postgresql.append(database)
